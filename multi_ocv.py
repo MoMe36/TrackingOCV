@@ -1,10 +1,21 @@
 import cv2
 import numpy as np 
 import glob 
+from argparse import ArgumentParser 
 
 #=============================================
 # https://www.pyimagesearch.com/2018/08/06/tracking-multiple-objects-with-opencv/
 #=============================================
+
+
+good_init = [(829, 118, 70, 54), 
+             (796, 497, 57, 92)]
+
+parser = ArgumentParser()
+parser.add_argument('--manual', action = 'store_true')
+args = parser.parse_args()
+
+
 
 def drawBox(img, bbox):
     bbox = np.array(bbox).astype(int)
@@ -15,12 +26,21 @@ cam = cv2.VideoCapture("car-v3.mp4")
 trackers =  cv2.legacy.MultiTracker_create()
 
 success, img = cam.read()
-
-for i in range(3): 
-    box = cv2.selectROI("Car Tracking", img, fromCenter = False)
-    tracker = cv2.legacy_TrackerKCF()
-    print('ok')
-    trackers.add(tracker, img, box)
+if args.manual: 
+    nb_detect = int(input('How many object to detect ? '))
+    for i in range(2): 
+        box = cv2.selectROI("Car Tracking", img, fromCenter = False)
+        # tracker = cv2.legacy.TrackerKCF_create()
+        tracker = cv2.legacy.TrackerCSRT_create()
+        print('Box: {}'.format(box))
+        trackers.add(tracker, img, box)
+else: 
+    for i in range(len(good_init)): 
+        box = good_init[i]
+        # tracker = cv2.legacy.TrackerKCF_create()
+        tracker = cv2.legacy.TrackerCSRT_create()
+        print('Box: {}'.format(box))
+        trackers.add(tracker, img, box)
 
 while True: 
     timer = cv2.getTickCount()
