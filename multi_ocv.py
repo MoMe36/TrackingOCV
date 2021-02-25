@@ -37,6 +37,7 @@ def drawSpeed(img, prev_box, box):
 
 
 cam = cv2.VideoCapture("car-v3.mp4")
+cam_fps = cam.get(cv2.CAP_PROP_FPS)
 trackers = cv2.legacy.MultiTracker_create()
 
 success, img = cam.read()
@@ -56,11 +57,18 @@ else:
         print('Box: {}'.format(box))
         trackers.add(tracker, img, box)
 
+w,h = int(img.shape[1]*0.6), int(img.shape[0]*0.6)
+video_writer = cv2.VideoWriter('output.mp4',cv2.VideoWriter_fourcc(*'mp4v'), cam_fps, (w,h))
+
 prev_bbox = None
 
 while True: 
     timer = cv2.getTickCount()
     success, img = cam.read()
+
+    if img is None:
+        break
+
     success, bbox = trackers.update(img)
 
     if success: 
@@ -79,10 +87,12 @@ while True:
 
     fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
     cv2.putText(img, str(int(fps)), (75,50), cv2.FONT_HERSHEY_COMPLEX, 0.7, (128,12,60), 2)
-    
+
     w,h = int(img.shape[1]*0.6), int(img.shape[0]*0.6)
     img = cv2.resize(img, (w,h))
     cv2.imshow("Tracking", img)
+
+    video_writer.write(img)
 
     # if cv2.waitKey(1) & 0xff == ord('s'): 
     #     box = cv2.selectROI("Car Tracking", img, fromCenter = False)
@@ -91,4 +101,7 @@ while True:
     #     trackers.add(tracker, img, box) 
 
     if cv2.waitKey(1) & 0xff == ord('q'): 
-        break 
+        break
+
+cam.release()
+video_writer.release()
