@@ -2,7 +2,9 @@
 
 ### 25/02/2021 
 
-* Initialisation of Reveal folder for tracking project advancement
+* Initialisation of Reveal folder for tracking weekly project advancement
+* Added FPS recording 
+
 
 ### 24/02/2021 
 
