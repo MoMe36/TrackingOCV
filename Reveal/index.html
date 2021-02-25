@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js - Math Plugin</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/solarized.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+		
+
+
+<section style = "text-align: left" data-markdown>
+	<script type="text/template">
+		<center>
+			<h2>Autonomous cars through visual tracking</h2>
+		</center> 
+
+	</script>	
+</section>
+
+
+<section> <!-- Semaine du 22 février  -->
+<section style = "text-align: left" data-markdown>
+	<script type="text/template">
+		
+		<h3>22/02/2021 - 26/02/2021</h3>
+			
+	</script>	
+</section>
+<section style = "text-align: left" data-markdown>
+	<script type="text/template">
+
+<h4>Organisation</h4>
+
+<small>
+
+<ul>
+<li>Entrée de Yoann SANMARTIN sur le projet </li>
+<li>Création d'un [code repository](https://github.com/MoMe36/TrackingOCV.git) pour le projet sur Github</li>
+</ul>
+
+</small>
+
+<h4>Travaux</h4>
+
+<small>
+
+<ul>
+<li>Évaluation de diverses méthodes de Tracking sur OpenCV </li>
+<li>Résultats contrastés</li>
+<ul>
+<li>Tracker KCF très rapide, mais manque de précision. Potentiellement possible de mettre en place réinitialisation pour limiter les pertes </li>
+<li>Tracker CSRT plus précis mais lent. Pas de pertes des véhicules rouges mais FPS < 20 pour 2 véhicules</li>
+</ul>
+<li>Début de l'évaluation des vecteurs vitesse</li>
+</ul>
+
+</small>
+		
+			
+	</script>	
+</section>
+
+
+<section style = "text-align: left" data-markdown>
+	<script type="text/template">
+	
+	<center>
+		<img src="../results/fps_lines.png">
+	</center>
+			
+	</script>	
+</section>
+<section style = "text-align: left" data-markdown>
+	<script type="text/template">
+	
+	<center>
+		<img src="../results/fps_hist.png">
+	</center>
+
+			
+	</script>	
+</section>
+
+<section style = "text-align: left" data-markdown>
+	<script type="text/template">
+	
+	Ajouter vidéos
+			
+	</script>	
+</section>
+
+</section>		
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); }},
+					{ src: 'plugin/math/math.js', async: true }
+				]
+			});
+
+			Reveal.configure({ slideNumber: 'c/t' });
+		</script>
+	</body>
+</html>
