@@ -96,6 +96,7 @@ def main():
             break
 
         tracker_img = cv2.resize(img, (tracker_w, tracker_h))
+        tracker_img = cv2.cvtColor(tracker_img, cv2.COLOR_BGR2GRAY)
         display_img = cv2.resize(img, (display_w, display_h))
         success, bbox = trackers.update(tracker_img)
 
