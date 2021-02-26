@@ -50,6 +50,15 @@ def main():
 
     cam = cv2.VideoCapture("car-v3.mp4")
     cam_fps = cam.get(cv2.CAP_PROP_FPS)
+    cam_w, cam_h = cam.get(cv2.CAP_PROP_FRAME_WIDTH), cam.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
+    tracker_scale = 0.6
+    tracker_w, tracker_h = int(cam_w * tracker_scale), int(cam_h * tracker_scale)
+
+    display_scale = 0.6
+    display_w, display_h = int(cam_w * display_scale), int(cam_h * display_scale)
+
+    good_init = [tuple(map(lambda x: int(x*tracker_scale), box)) for box in good_init]
 
     trackers = cv2.legacy.MultiTracker_create()
     tracker_strategy = cv2.legacy.TrackerKCF_create if args.kcf else cv2.legacy.TrackerCSRT_create
@@ -57,6 +66,7 @@ def main():
     fps_record = []
 
     success, img = cam.read()
+    tracker_img = cv2.resize(img, (tracker_w, tracker_h))
 
     if args.manual:
         nb_detect = int(input('How many object to detect ? '))
@@ -65,17 +75,16 @@ def main():
             tracker = tracker_strategy()
 
             print(f'Box: {box}')
-            trackers.add(tracker, img, box)
+            trackers.add(tracker, tracker_img, box)
     else:
         nb_detect = len(good_init)
         for box in good_init:
             tracker = tracker_strategy()
 
             print(f'Box: {box}')
-            trackers.add(tracker, img, box)
+            trackers.add(tracker, tracker_img, box)
 
-    w, h = int(img.shape[1]*0.6), int(img.shape[0]*0.6)
-    video_writer = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), cam_fps, (w, h))
+    video_writer = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), cam_fps, (display_w, display_h))
 
     prev_bbox = None
 
@@ -86,21 +95,27 @@ def main():
         if img is None:
             break
 
-        success, bbox = trackers.update(img)
+        tracker_img = cv2.resize(img, (tracker_w, tracker_h))
+        display_img = cv2.resize(img, (display_w, display_h))
+        success, bbox = trackers.update(tracker_img)
 
         if success:
             for box in bbox:
-                draw_box(img, box)
+                box = box * display_scale / tracker_scale
+                draw_box(display_img, box)
             cv2.putText(img, 'Tracking', (75, 80), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 0, 0), 2)
+
+            if prev_bbox is not None:
+                for (prev_box, box) in zip(prev_bbox, bbox):
+                    box = box * display_scale / tracker_scale
+                    prev_box = prev_box * display_scale / tracker_scale
+
+                    draw_speed(display_img, prev_box, box)
+
+            prev_bbox = bbox
         else:
             print('Lost')
-            cv2.putText(img, 'Lost', (75, 80), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 0, 0), 2)
-
-        if prev_bbox is not None:
-            for (prev_box, box) in zip(prev_bbox, bbox):
-                draw_speed(img, prev_box, box)
-
-        prev_bbox = bbox
+            cv2.putText(display_img, 'Lost', (75, 80), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 0, 0), 2)
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
 
@@ -109,13 +124,11 @@ def main():
         else:
             fps_record.append(0)
 
-        cv2.putText(img, str(int(fps)), (75, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7, (128, 12, 60), 2)
+        cv2.putText(display_img, str(int(fps)), (75, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7, (128, 12, 60), 2)
 
-        w, h = int(img.shape[1]*0.6), int(img.shape[0]*0.6)
-        img = cv2.resize(img, (w, h))
-        cv2.imshow("Tracking", img)
+        cv2.imshow("Tracking", display_img)
 
-        video_writer.write(img)
+        video_writer.write(display_img)
         if cv2.waitKey(1) & 0xff == ord('q'):
             break
 
