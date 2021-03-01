@@ -130,6 +130,7 @@ def main():
         nb_detect = int(input('How many object to detect ? '))
         for i in range(nb_detect):
             box = cv2.selectROI("Car Tracking", img, fromCenter=False)
+            box = tuple(map(lambda x: int(x*tracker_scale), box))
             tracker = tracker_strategy()
             tracker.init(tracker_img, box)
 
@@ -151,6 +152,7 @@ def main():
         success, img = cam.read()
 
         if img is None:
+            print("End of input stream")
             break
 
         tracker_img = cv2.resize(img, (tracker_w, tracker_h))
