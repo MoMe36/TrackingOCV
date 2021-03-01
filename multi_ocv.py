@@ -9,6 +9,55 @@ import os
 # =============================================
 
 
+class OcvTracker:
+    def __init__(self, strategy):
+        self.tracker = strategy()
+        self.box = None
+
+        self.kalman = cv2.KalmanFilter(4, 4)  # state = (x, y, vx, vy)
+        self.kalman.transitionMatrix = np.array([[1., 0., 1., 0.],
+                                                 [0., 1., 0., 1.],
+                                                 [0., 0., 1., 0.],
+                                                 [0., 0., 0., 1.]])
+        self.kalman.processNoiseCov = 0.1 * np.array([[1., 0., 1., 0.],
+                                                      [0., 1., 0., 1.],
+                                                      [0., 0., 1., 0.],
+                                                      [0., 0., 0., 1.]])
+        self.kalman.measurementMatrix = 1. * np.eye(4)
+        self.kalman.measurementNoiseCov = np.array([[1., 0., 2., 0.],
+                                                    [0., 1., 0., 2.],
+                                                    [0., 0., 2., 0.],
+                                                    [0., 0., 0., 2.]]) * 10
+        self.kalman.errorCovPost = 1. * np.ones((4, 4))
+        self.kalman.errorCovPre = 1. * np.ones((4, 4))
+        self.kalman.gain = self.kalman.gain.astype(float)
+        self.kalman.statePre = 0.1 * np.random.randn(4)
+        self.kalman.statePost = 0.1 * np.random.randn(4)
+
+    def init(self, img, box):
+        self.box = np.array(box)
+        self.kalman.statePost[:2] = box[:2]
+        self.tracker.init(img, tuple(box))
+
+    def predict(self):
+        self.kalman.predict()
+
+    def update(self, img):
+        success, box = self.tracker.update(img)
+        box = np.array(box)
+        if success:
+            measure = np.zeros(4)
+            measure[2:] = box[:2] - self.box[:2]
+            measure[:2] = box[:2]
+            self.kalman.correct(measure)
+            self.box[:2] = self.kalman.statePost[:2].astype(int)
+        else:
+            self.box[:2] = self.kalman.statePre[:2].astype(int)
+            self.init(img, self.box)
+
+        return success, self.box
+
+
 def get_box_center(box: np.ndarray) -> np.ndarray:
     return (box[:2] + box[2:]/2).astype(int)
 
@@ -23,6 +72,12 @@ def draw_speed(img: np.ndarray, prev_box: np.ndarray, box: np.ndarray, size_mult
     centre = get_box_center(box).astype(int)
     prev_centre = get_box_center(prev_box).astype(int)
     diff = centre - prev_centre
+    cv2.arrowedLine(img, tuple(centre), tuple(centre + size_multiplier*diff), (0, 255, 0), 2, 1)
+
+
+def draw_speed(img: np.ndarray, tracker: OcvTracker, scale: float, size_multiplier: int = 5):
+    centre = (scale*get_box_center(tracker.box)).astype(int)
+    diff = tracker.kalman.statePost[2:].astype(int)
     cv2.arrowedLine(img, tuple(centre), tuple(centre + size_multiplier*diff), (0, 255, 0), 2, 1)
 
 
@@ -60,8 +115,11 @@ def main():
 
     good_init = [tuple(map(lambda x: int(x*tracker_scale), box)) for box in good_init]
 
-    trackers = cv2.legacy.MultiTracker_create()
-    tracker_strategy = cv2.legacy.TrackerKCF_create if args.kcf else cv2.legacy.TrackerCSRT_create
+    trackers = []
+    # tracker_strategy = cv2.legacy.TrackerKCF_create if args.kcf else cv2.legacy.TrackerCSRT_create
+
+    def tracker_strategy():
+        return OcvTracker(cv2.legacy.TrackerKCF_create if args.kcf else cv2.legacy.TrackerCSRT_create)
 
     fps_record = []
 
@@ -73,20 +131,20 @@ def main():
         for i in range(nb_detect):
             box = cv2.selectROI("Car Tracking", img, fromCenter=False)
             tracker = tracker_strategy()
+            tracker.init(tracker_img, box)
 
             print(f'Box: {box}')
-            trackers.add(tracker, tracker_img, box)
+            trackers.append(tracker)
     else:
         nb_detect = len(good_init)
         for box in good_init:
             tracker = tracker_strategy()
+            tracker.init(tracker_img, box)
 
             print(f'Box: {box}')
-            trackers.add(tracker, tracker_img, box)
+            trackers.append(tracker)
 
     video_writer = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), cam_fps, (display_w, display_h))
-
-    prev_bbox = None
 
     while True:
         timer = cv2.getTickCount()
@@ -96,34 +154,30 @@ def main():
             break
 
         tracker_img = cv2.resize(img, (tracker_w, tracker_h))
-        tracker_img = cv2.cvtColor(tracker_img, cv2.COLOR_BGR2GRAY)
+        if not args.kcf:
+            tracker_img = cv2.cvtColor(tracker_img, cv2.COLOR_BGR2GRAY)
         display_img = cv2.resize(img, (display_w, display_h))
-        success, bbox = trackers.update(tracker_img)
 
-        if success:
-            for box in bbox:
-                box = box * display_scale / tracker_scale
-                draw_box(display_img, box)
-            cv2.putText(img, 'Tracking', (75, 80), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 0, 0), 2)
+        lost = False
+        for tracker in trackers:
+            tracker.predict()
+            success, bbox = tracker.update(tracker_img)
 
-            if prev_bbox is not None:
-                for (prev_box, box) in zip(prev_bbox, bbox):
-                    box = box * display_scale / tracker_scale
-                    prev_box = prev_box * display_scale / tracker_scale
+            box = tracker.box * display_scale / tracker_scale
+            draw_box(display_img, box)
+            draw_speed(display_img, tracker, display_scale / tracker_scale)
 
-                    draw_speed(display_img, prev_box, box)
-
-            prev_bbox = bbox
-        else:
-            print('Lost')
-            cv2.putText(display_img, 'Lost', (75, 80), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 0, 0), 2)
+            if not success:
+                lost = True
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-
-        if success:
-            fps_record.append(fps)
-        else:
+        if lost:
+            print('Lost')
             fps_record.append(0)
+            cv2.putText(display_img, 'Lost', (75, 80), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 0, 0), 2)
+        else:
+            fps_record.append(fps)
+            cv2.putText(display_img, 'Tracking', (75, 80), cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 0, 0), 2)
 
         cv2.putText(display_img, str(int(fps)), (75, 50), cv2.FONT_HERSHEY_COMPLEX, 0.7, (128, 12, 60), 2)
 
