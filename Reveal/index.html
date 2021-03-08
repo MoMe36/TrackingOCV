@@ -116,7 +116,44 @@ Sorry, your browser doesn't support embedded videos.
 	</script>	
 </section>
 
-</section>		
+</section>
+
+<section><!-- Semaine du 1 mars  -->
+	<section style = "text-align: left" data-markdown>
+		<script type="text/template">
+			
+			<h3>01/03/2021 - 05/03/2021</h3>
+				
+		</script>	
+	</section>
+	<section style = "text-align: left" data-markdown>
+		<script type="text/template">
+			<h4>Travaux</h4>
+			<small>
+				<ul>
+					<li>Nettoyage du code</li>
+					<li>Amélioration des performances</li>
+					<ul>
+						<li>Réduction de la taille de l'image en entrée des trackers</li>
+						<li>Conversion de l'image en niveau de gris (1 channel au lieu de 3) pour le tracker CSRT (KCF requiert les 3 channels)</li>
+						<li>Augmentation significative des fps en traitement, mais à améliorer encore</li>
+						<li>Pas d'impact constaté</li>
+					</ul>
+					<li>Utilisation d'un filtre de Kalman pour lisser les vecteurs vitesses et tenter de récupérer des tracking perdus</li>
+					<ul>
+						<li>Réduction significative du bruit sur les vecteurs vitesses</li>
+						<li>Quelques légères imprécisions constatées :</li>
+						<ul>
+							<li>À certains moments le vecteur vitesse n'est pas tout à faire colinéaire à la voiture</li>
+							<li>Pourrait être améliorer en ayant accès aux commandes envoyées aux véhicules (correspondrait à l'entrée "control" des filtres de Kalmans)</li>
+						</ul>
+						<li>Résultats peu encourageants quant à la reprise des tracking perdus</li>
+					</ul>
+				</ul>
+			</small>
+		</script>
+	</section>
+</section>
 
 		<script src="lib/js/head.min.js"></script>
 		<script src="js/reveal.js"></script>
