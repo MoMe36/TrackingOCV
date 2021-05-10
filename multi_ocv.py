@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt 
 import pandas as pd 
 import os
+import socket
 # =============================================
 # https://www.pyimagesearch.com/2018/08/06/tracking-multiple-objects-with-opencv/
 # =============================================
@@ -91,6 +92,21 @@ def add_to_record_file(data, name_p):
 
     df.to_csv('fps_data.csv', index=False)
 
+def communication(dataa):
+	clientSocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	try:
+		clientSocket.connect(('localhost',5566))
+		print("connected client!")
+		data=dataa
+		data=data.encode("utf8")
+		clientSocket.sendall(data)
+
+	except:
+		print("communication to the server failed")
+
+	finally:
+		clientSocket.close()
+
 
 def main():
     good_init = [(829, 118, 70, 54),
@@ -161,16 +177,21 @@ def main():
         display_img = cv2.resize(img, (display_w, display_h))
 
         lost = False
+        pos_value=[]
         for tracker in trackers:
             tracker.predict()
             success, bbox = tracker.update(tracker_img)
 
             box = tracker.box * display_scale / tracker_scale
+            pos_value.append(box)
             draw_box(display_img, box)
             draw_speed(display_img, tracker, display_scale / tracker_scale)
+            communication(pos_value)
+            
 
             if not success:
                 lost = True
+
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
         if lost:
