@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd 
 import os
 import socket
+import threading
 # =============================================
 # https://www.pyimagesearch.com/2018/08/06/tracking-multiple-objects-with-opencv/
 # =============================================
@@ -92,25 +93,19 @@ def add_to_record_file(data, name_p):
 
     df.to_csv('fps_data.csv', index=False)
 
-def communication(dataa):
-	clientSocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	try:
-		clientSocket.connect(('localhost',5566))
-		print("connected client!")
-		data=dataa
-		data=data.encode("utf8")
-		clientSocket.sendall(data)
 
-	except:
-		print("communication to the server failed")
+clientSocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)  
+clientSocket.connect(('localhost',5566))
 
-	finally:
-		clientSocket.close()
+def send_client(client,data):
+    data=data.encode("utf8")
+    client.sendall(data)
 
 
 def main():
+    
     good_init = [(829, 118, 70, 54),
-                 (796, 497, 57, 92)]
+                     (796, 497, 57, 92)]
 
     parser = ArgumentParser()
     parser.add_argument('--manual', action='store_true')
@@ -177,21 +172,25 @@ def main():
         display_img = cv2.resize(img, (display_w, display_h))
 
         lost = False
-        pos_value=[]
+        position_values=[]
         for tracker in trackers:
             tracker.predict()
             success, bbox = tracker.update(tracker_img)
 
             box = tracker.box * display_scale / tracker_scale
-            pos_value.append(box)
+            position_values.append(box)
             draw_box(display_img, box)
             draw_speed(display_img, tracker, display_scale / tracker_scale)
-            communication(pos_value)
-            
-
+            # print(position_values)    
             if not success:
                 lost = True
 
+        send_client(clientSocket,str(position_values))  
+
+
+        # th1=threading.Thread(target=send_client(clientSocket,str(position_values)))
+        # th1.start()
+        # th1.join()
 
         fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
         if lost:
