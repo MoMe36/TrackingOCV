@@ -1,19 +1,24 @@
 #coding:utf-8
 import socket
 
-socket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-host,port=('',5566)
-socket.bind((host,port))
-print("le serveur est démarer")
+def strat_serveur():
 
-while True:
-	socket.listen()
-	conn,adresse=socket.accept()
+	serveur=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	host,port=('',5566)
+	serveur.bind((host,port))
+	print("le serveur est démarer")
+	serveur.listen()
+	conn,adresse=serveur.accept()
 
-	print(" Listening ...")
-	data=conn.recv(1024)
-	data=data.decode("utf-8")
-	print(data)
+	while True:
 
-conn.close()
-socket.close()
+		data=conn.recv(2048)
+		data=data.decode("utf-8")
+		print(data)
+	conn.close()
+	serveur.close()
+
+
+
+
+strat_serveur()
