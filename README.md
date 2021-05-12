@@ -2,18 +2,18 @@
 
 ###17/04/2021-30/04/0221
 
-*Développement d'un module de communication(client-serveur)
-*Mise à jour du programme principale (ajout du module de communication)  
-*Envoie des données en temps réel (position des véhicules) vers le serveur. 
+* Développement d'un module de communication(client-serveur)
+* Mise à jour du programme principale (ajout du module de communication)  
+* Envoie des données en temps réel (position des véhicules) vers le serveur. 
 
 ###01/04/2021-15/04/0221
 
-*Recherche de stratégies permettant de communiquer deux machines en python
-*Documentation sur le module socket de python 
+* Recherche de stratégies permettant de communiquer deux machines en python
+* Documentation sur le module socket de python 
 
 ###01/04/2021-15/04/0221
 
-*Prise en main du code (compréhension des méthodes avec opencv) 
+* Prise en main du code (compréhension des méthodes avec opencv) 
 
 ###15/03/2021 - 19/03/2021
 
