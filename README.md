@@ -1,7 +1,21 @@
-# Tracking Project 
+﻿# Tracking Project
 
+###17/04/2021-30/04/0221
 
-### 15/03/2021 - 19/03/2021
+*Développement un module communication(client-serveur)
+*Mise à jour du programme principale (ajout du module de communication)  
+*Envoie des données (position des véhicules vers le serveur)
+
+###01/04/2021-15/04/0221
+
+*Recherche de stratégies permettant d'envoyer les données avec python
+*Documentation sur le module socket de python 
+
+###01/04/2021-15/04/0221
+
+*Prise en main du code (compréhension des méthodes avec opencv) 
+
+###15/03/2021 - 19/03/2021
 
 * Évaluation des techniques d'OF + tracking classique sur la vidéo du projet Tracking 
 * Résultats peu convaincants. 
