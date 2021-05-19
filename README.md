@@ -1,6 +1,11 @@
 ﻿# Tracking Project
-
+ 
 ###17/04/2021-30/04/0221
+=======
+### 15/04/2021-25/04/2021
+* Recherche de stratégies permettant d'envoyer les données des véhicules
+* Documentation sur l'objet de communication socket 
+* Les étapes d’une communication Client-Serveur
 
 * Développement d'un module de communication(client-serveur)
 * Mise à jour du programme principale (ajout du module de communication)  
